@@ -8,35 +8,31 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var datos = DatosVitales()
+    // PASO 2: Cambiar de DatosVitales a ViewModel
+    @StateObject private var viewModel = SignosVitalesViewModel()
     
     var body: some View {
         TabView {
-            RegistrarView(datos: datos)
+            // PASO 2: Pasar ViewModel en lugar de datos
+            RegistrarView(viewModel: viewModel)
                 .tabItem {
                     Image(systemName: "plus.circle.fill")
                     Text("Registrar")
                 }
             
-            HistorialView(datos: datos)
+            HistorialView(viewModel: viewModel)
                 .tabItem {
                     Image(systemName: "list.bullet")
                     Text("Historial")
-                }
-            
-            DatabaseAdminView(datos: datos)
-                .tabItem {
-                    Image(systemName: "server.rack")
-                    Text("Base de Datos")
                 }
         }
         .accentColor(.blue)
     }
 }
 
-// Vista para registrar
+// PASO 2: Vista para registrar - Ahora recibe ViewModel
 struct RegistrarView: View {
-    @ObservedObject var datos: DatosVitales
+    @ObservedObject var viewModel: SignosVitalesViewModel
     @State private var temperatura = ""
     @State private var presion = ""
     @State private var ritmo = ""
@@ -111,7 +107,10 @@ struct RegistrarView: View {
                     if temperatura.isEmpty || presion.isEmpty || ritmo.isEmpty {
                         mostrarAlerta = true
                     } else {
-                        datos.agregar(temperatura: temperatura, presion: presion, ritmo: ritmo)
+                        // PASO 2: Por ahora, agregamos directamente al array
+                        // (En el PASO 3 crearemos el método en el ViewModel)
+                        let nuevo = SignoVital(temperatura: temperatura, presion: presion, ritmoCardiaco: ritmo)
+                        viewModel.signosVitales.insert(nuevo, at: 0)
                         limpiarCampos()
                     }
                 }) {
@@ -147,9 +146,9 @@ struct RegistrarView: View {
     }
 }
 
-// Vista del historial
+// PASO 2: Vista del historial - Ahora recibe ViewModel
 struct HistorialView: View {
-    @ObservedObject var datos: DatosVitales
+    @ObservedObject var viewModel: SignosVitalesViewModel
     
     var body: some View {
         NavigationView {
@@ -164,7 +163,7 @@ struct HistorialView: View {
                         Text("Historial Médico")
                             .font(.title3)
                             .fontWeight(.bold)
-                        Text("\(datos.lista.count) registros")
+                        Text("\(viewModel.signosVitales.count) registros")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -173,7 +172,7 @@ struct HistorialView: View {
                 }
                 .padding()
                 
-                if datos.lista.isEmpty {
+                if viewModel.signosVitales.isEmpty {
                     // Estado vacío básico
                     VStack(spacing: 15) {
                         Image(systemName: "tray")
@@ -190,7 +189,7 @@ struct HistorialView: View {
                 } else {
                     // Lista
                     List {
-                        ForEach(datos.lista) { registro in
+                        ForEach(viewModel.signosVitales) { registro in
                             VStack(alignment: .leading, spacing: 8) {
                                 // Fecha mejorada
                                 HStack {
@@ -228,7 +227,8 @@ struct HistorialView: View {
                             }
                             .padding(.vertical, 4)
                         }
-                        .onDelete(perform: datos.eliminar)
+                        // PASO 2: Comentamos temporalmente hasta crear el método en ViewModel
+                        // .onDelete(perform: viewModel.eliminar)
                     }
                     .listStyle(PlainListStyle())
                 }
