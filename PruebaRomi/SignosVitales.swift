@@ -7,51 +7,109 @@
 
 import Foundation
 
-// Modelo de signos vitales
+// MARK: - Modelo mejorado de signos vitales
 struct SignoVital: Identifiable, Codable {
-    var id = UUID()
-    var fecha = Date()
-    var temperatura: String
-    var presion: String
-    var ritmoCardiaco: String
+    let id: UUID
+    let fecha: Date
+    let temperatura: String
+    let presion: String
+    let ritmoCardiaco: String
     
+    // Constructor principal
     init(temperatura: String, presion: String, ritmoCardiaco: String) {
+        self.id = UUID()
+        self.fecha = Date()
         self.temperatura = temperatura
         self.presion = presion
         self.ritmoCardiaco = ritmoCardiaco
     }
+    
+    // Constructor completo para casos especiales
+    init(id: UUID = UUID(), fecha: Date = Date(), temperatura: String, presion: String, ritmoCardiaco: String) {
+        self.id = id
+        self.fecha = fecha
+        self.temperatura = temperatura
+        self.presion = presion
+        self.ritmoCardiaco = ritmoCardiaco
+    }
+    
+    // Validación básica
+    var esValido: Bool {
+        return !temperatura.isEmpty && !presion.isEmpty && !ritmoCardiaco.isEmpty
+    }
+    
+    // Formato de fecha para mostrar
+    var fechaTexto: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: fecha)
+    }
 }
 
-// Clase para manejar datos con almacenamiento
+// MARK: - Clase principal para manejar datos (ahora con DataManager)
 class DatosVitales: ObservableObject {
     @Published var lista: [SignoVital] = []
-    private let clave = "datosVitales"
+    private let dataManager = DataManager.shared
     
     init() {
         cargarDatos()
     }
     
+    // MARK: - Operaciones principales
+    
     func agregar(temperatura: String, presion: String, ritmo: String) {
         let nuevo = SignoVital(temperatura: temperatura, presion: presion, ritmoCardiaco: ritmo)
+        
+        // Validar antes de agregar
+        guard nuevo.esValido else {
+            print("⚠️ Datos no válidos, no se puede agregar")
+            return
+        }
+        
+        // Agregar a la lista local
         lista.insert(nuevo, at: 0)
-        guardarDatos()
+        
+        // Guardar en la base de datos
+        dataManager.guardar(signosVitales: lista)
+        
+        print("✅ Nuevo registro agregado: Temp: \(temperatura)°C, Presión: \(presion), Ritmo: \(ritmo)ppm")
     }
     
     func eliminar(at indices: IndexSet) {
+        // Eliminar de la lista local
         lista.remove(atOffsets: indices)
-        guardarDatos()
+        
+        // Actualizar base de datos
+        dataManager.guardar(signosVitales: lista)
+        
+        print("🗑️ Registro(s) eliminado(s)")
     }
     
-    private func guardarDatos() {
-        if let data = try? JSONEncoder().encode(lista) {
-            UserDefaults.standard.set(data, forKey: clave)
-        }
+    func limpiarTodo() {
+        lista.removeAll()
+        dataManager.limpiarTodo()
+        print("🧹 Todos los datos eliminados")
     }
+    
+    // MARK: - Carga de datos
     
     private func cargarDatos() {
-        if let data = UserDefaults.standard.data(forKey: clave),
-           let listaGuardada = try? JSONDecoder().decode([SignoVital].self, from: data) {
-            lista = listaGuardada
-        }
+        lista = dataManager.cargar()
+        print("📂 Datos cargados: \(lista.count) registros")
+    }
+    
+    // MARK: - Información útil
+    
+    var cantidadRegistros: Int {
+        return lista.count
+    }
+    
+    var ultimaActualizacion: Date? {
+        return dataManager.ultimaActualizacion()
+    }
+    
+    var tieneRegistros: Bool {
+        return !lista.isEmpty
     }
 }

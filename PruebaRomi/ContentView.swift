@@ -23,6 +23,12 @@ struct ContentView: View {
                     Image(systemName: "list.bullet")
                     Text("Historial")
                 }
+            
+            DatabaseAdminView(datos: datos)
+                .tabItem {
+                    Image(systemName: "server.rack")
+                    Text("Base de Datos")
+                }
         }
         .accentColor(.blue)
     }
