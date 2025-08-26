@@ -107,10 +107,8 @@ struct RegistrarView: View {
                     if temperatura.isEmpty || presion.isEmpty || ritmo.isEmpty {
                         mostrarAlerta = true
                     } else {
-                        // PASO 2: Por ahora, agregamos directamente al array
-                        // (En el PASO 3 crearemos el método en el ViewModel)
-                        let nuevo = SignoVital(temperatura: temperatura, presion: presion, ritmoCardiaco: ritmo)
-                        viewModel.signosVitales.insert(nuevo, at: 0)
+                        // PASO 3A: Ahora usamos el método del ViewModel
+                        viewModel.agregar(temperatura: temperatura, presion: presion, ritmo: ritmo)
                         limpiarCampos()
                     }
                 }) {
@@ -227,8 +225,8 @@ struct HistorialView: View {
                             }
                             .padding(.vertical, 4)
                         }
-                        // PASO 2: Comentamos temporalmente hasta crear el método en ViewModel
-                        // .onDelete(perform: viewModel.eliminar)
+                        // PASO 3B: Ahora usamos el método eliminar del ViewModel
+                        .onDelete(perform: viewModel.eliminar)
                     }
                     .listStyle(PlainListStyle())
                 }
