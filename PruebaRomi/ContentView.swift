@@ -2,40 +2,108 @@
 //  ContentView.swift
 //  PruebaRomi
 //
-//  Created by Jonathan Tijerina on 19/08/25.
+//  📱 VIEWS - La INTERFAZ de la arquitectura MVVM
+//
+//  ¿QUÉ HACE ESTE ARCHIVO?
+//  - Contiene todas las VISTAS (UI) de la app
+//  - Se conecta con el ViewModel para mostrar/manipular datos
+//  - Maneja eventos del usuario (toques, swipes, texto)
+//  - Contiene SOLO interfaz, SIN lógica de negocio (eso va en ViewModel)
 //
 
 import SwiftUI
 
+// ═══════════════════════════════════════════════════════════════
+// 📱 VISTA PRINCIPAL - Punto de entrada de la app
+// ═══════════════════════════════════════════════════════════════
+
+/// 🏠 VISTA PRINCIPAL DE LA APP
+/// 🎯 PROPÓSITO: Contenedor principal con pestañas (TabView)
+/// 🔗 CONECTA CON: SignosVitalesViewModel (como @StateObject)
+/// 📱 CONTIENE: RegistrarView + HistorialView en pestañas
 struct ContentView: View {
-    // PASO 2: Cambiar de DatosVitales a ViewModel
+    
+    // ┌─────────────────────────────────────────────────────────┐
+    // │ 🧠 CONEXIÓN CON EL VIEWMODEL                           │
+    // └─────────────────────────────────────────────────────────┘
+    
+    /// 🧠 ViewModel principal - EL CEREBRO de la app
+    /// ⚡ @StateObject: SwiftUI crea y mantiene esta instancia
+    /// 🔗 COMPARTIDO: Se pasa a RegistrarView y HistorialView
+    /// 📡 OBSERVA: Cambios automáticos cuando signosVitales se actualiza
     @StateObject private var viewModel = SignosVitalesViewModel()
     
     var body: some View {
+        // 📑 TabView - Crea pestañas en la parte inferior
         TabView {
-            // PASO 2: Pasar ViewModel en lugar de datos
+            
+            // ┌─────────────────────────────────────────────────────────┐
+            // │ 📝 PESTAÑA 1: REGISTRAR NUEVOS SIGNOS VITALES          │
+            // └─────────────────────────────────────────────────────────┘
+            
+            /// 📝 Vista para agregar nuevos registros médicos
+            /// 🔗 RECIBE: viewModel (para llamar agregar() method)
+            /// 📥 USUARIO: Escribe temperatura, presión, ritmo → toca "Guardar"
+            /// 📤 RESULTADO: Nuevo registro en HistorialView
             RegistrarView(viewModel: viewModel)
                 .tabItem {
                     Image(systemName: "plus.circle.fill")
                     Text("Registrar")
                 }
             
+            // ┌─────────────────────────────────────────────────────────┐
+            // │ 📜 PESTAÑA 2: VER HISTORIAL DE REGISTROS               │
+            // └─────────────────────────────────────────────────────────┘
+            
+            /// 📜 Vista para ver todos los registros guardados
+            /// 🔗 RECIBE: viewModel (para mostrar signosVitales y eliminar())
+            /// 📥 USUARIO: Ve lista, puede deslizar para eliminar
+            /// 📤 RESULTADO: Lista actualizada automáticamente
             HistorialView(viewModel: viewModel)
                 .tabItem {
                     Image(systemName: "list.bullet")
                     Text("Historial")
                 }
         }
-        .accentColor(.blue)
+        .accentColor(.blue) // 🎨 Color azul para elementos seleccionados
     }
 }
 
-// PASO 2: Vista para registrar - Ahora recibe ViewModel
+// ═══════════════════════════════════════════════════════════════
+// 📝 VISTA PARA REGISTRAR - Formulario de entrada de datos
+// ═══════════════════════════════════════════════════════════════
+
+/// 📝 VISTA PARA REGISTRAR NUEVOS SIGNOS VITALES
+/// 🎯 PROPÓSITO: Formulario donde usuario ingresa datos médicos
+/// 🔗 CONECTA CON: SignosVitalesViewModel (para llamar agregar())
+/// 📱 CONTIENE: 3 TextFields + 1 Botón de guardar
 struct RegistrarView: View {
+    
+    // ┌─────────────────────────────────────────────────────────┐
+    // │ 🧠 CONEXIÓN CON EL VIEWMODEL                           │
+    // └─────────────────────────────────────────────────────────┘
+    
+    /// 🧠 Referencia al ViewModel compartido
+    /// ⚡ @ObservedObject: Observa cambios del ViewModel
+    /// 🔗 VIENE DE: ContentView (se pasa como parámetro)
+    /// 📞 USA: viewModel.agregar() para guardar datos
     @ObservedObject var viewModel: SignosVitalesViewModel
+    
+    // ┌─────────────────────────────────────────────────────────┐
+    // │ 📝 ESTADO LOCAL DE LA VISTA (datos del formulario)     │
+    // └─────────────────────────────────────────────────────────┘
+    
+    /// 🌡️ Campo de temperatura (enlazado con TextField)
+    /// 💭 @State: Variable local que SwiftUI observa
     @State private var temperatura = ""
+    
+    /// 🩺 Campo de presión arterial (enlazado con TextField)
     @State private var presion = ""
+    
+    /// 💓 Campo de ritmo cardíaco (enlazado con TextField)
     @State private var ritmo = ""
+    
+    /// 🚨 Control para mostrar alerta de error
     @State private var mostrarAlerta = false
     
     var body: some View {
@@ -102,13 +170,25 @@ struct RegistrarView: View {
                 }
                 .padding(.horizontal)
                 
-                // Botón
+                // ┌─────────────────────────────────────────────────────────┐
+                // │ 💾 BOTÓN GUARDAR - Conexión VISTA → VIEWMODEL          │
+                // └─────────────────────────────────────────────────────────┘
+                
+                /// 💾 BOTÓN PRINCIPAL - Guarda los datos ingresados
+                /// 🎯 EVENTO: Cuando usuario toca "Guardar Registro"
+                /// 🔍 VALIDACIÓN: Verifica que campos no estén vacíos
+                /// 🧠 CONEXIÓN MVVM: Llama viewModel.agregar() (NO hace lógica aquí)
                 Button(action: {
+                    // ✅ Validación básica en la vista (solo UI)
                     if temperatura.isEmpty || presion.isEmpty || ritmo.isEmpty {
-                        mostrarAlerta = true
+                        mostrarAlerta = true // 🚨 Mostrar alerta de error
                     } else {
-                        // PASO 3A: Ahora usamos el método del ViewModel
+                        // 🧠 CONEXIÓN MVVM: Delegar al ViewModel (TODA la lógica)
+                        // 🔗 LLAMA A: SignosVitalesViewModel.agregar()
+                        // 📤 RESULTADO: Nuevo registro aparece automáticamente en HistorialView
                         viewModel.agregar(temperatura: temperatura, presion: presion, ritmo: ritmo)
+                        
+                        // 🧹 Limpiar formulario después de guardar
                         limpiarCampos()
                     }
                 }) {
@@ -144,8 +224,25 @@ struct RegistrarView: View {
     }
 }
 
-// PASO 2: Vista del historial - Ahora recibe ViewModel
+// ═══════════════════════════════════════════════════════════════
+// 📜 VISTA PARA HISTORIAL - Lista de registros guardados
+// ═══════════════════════════════════════════════════════════════
+
+/// 📜 VISTA PARA VER HISTORIAL DE SIGNOS VITALES
+/// 🎯 PROPÓSITO: Mostrar lista de todos los registros guardados
+/// 🔗 CONECTA CON: SignosVitalesViewModel (para mostrar signosVitales)
+/// 📱 CONTIENE: Lista + funcionalidad para eliminar (swipe)
 struct HistorialView: View {
+    
+    // ┌─────────────────────────────────────────────────────────┐
+    // │ 🧠 CONEXIÓN CON EL VIEWMODEL                           │
+    // └─────────────────────────────────────────────────────────┘
+    
+    /// 🧠 Referencia al ViewModel compartido
+    /// ⚡ @ObservedObject: Observa cambios automáticamente
+    /// 🔗 VIENE DE: ContentView (se pasa como parámetro)
+    /// 👀 OBSERVA: viewModel.signosVitales para actualizar lista
+    /// 📞 USA: viewModel.eliminar() para borrar registros
     @ObservedObject var viewModel: SignosVitalesViewModel
     
     var body: some View {
@@ -161,6 +258,8 @@ struct HistorialView: View {
                         Text("Historial Médico")
                             .font(.title3)
                             .fontWeight(.bold)
+                        // 🔗 CONEXIÓN MVVM: Mostrar conteo automático
+                        // 📊 viewModel.signosVitales.count se actualiza automáticamente
                         Text("\(viewModel.signosVitales.count) registros")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -170,8 +269,13 @@ struct HistorialView: View {
                 }
                 .padding()
                 
+                // ┌─────────────────────────────────────────────────────────┐
+                // │ 📋 ESTADO CONDICIONAL - Vacío vs Con datos             │
+                // └─────────────────────────────────────────────────────────┘
+                
+                // 🔗 CONEXIÓN MVVM: Revisar si hay datos
                 if viewModel.signosVitales.isEmpty {
-                    // Estado vacío básico
+                    // 📭 Estado vacío (no hay registros)
                     VStack(spacing: 15) {
                         Image(systemName: "tray")
                             .font(.system(size: 50))
@@ -185,8 +289,13 @@ struct HistorialView: View {
                     
                     Spacer()
                 } else {
-                    // Lista
+                    // ┌─────────────────────────────────────────────────────────┐
+                    // │ 📜 LISTA PRINCIPAL - Mostrar todos los registros       │
+                    // └─────────────────────────────────────────────────────────┘
+                    
                     List {
+                        // 🔗 CONEXIÓN MVVM: Iterar sobre datos del ViewModel
+                        // ⚡ SwiftUI actualiza automáticamente cuando cambia signosVitales
                         ForEach(viewModel.signosVitales) { registro in
                             VStack(alignment: .leading, spacing: 8) {
                                 // Fecha mejorada
@@ -225,7 +334,15 @@ struct HistorialView: View {
                             }
                             .padding(.vertical, 4)
                         }
-                        // PASO 3B: Ahora usamos el método eliminar del ViewModel
+                        // ┌─────────────────────────────────────────────────────────┐
+                        // │ 🗑️ ELIMINAR - Conexión VISTA → VIEWMODEL              │
+                        // └─────────────────────────────────────────────────────────┘
+                        
+                        /// 🗑️ FUNCIÓN ELIMINAR por deslizar (swipe to delete)
+                        /// 🎯 EVENTO: Cuando usuario desliza elemento hacia la izquierda
+                        /// 🧠 CONEXIÓN MVVM: Llama viewModel.eliminar() (NO hace lógica aquí)
+                        /// 🔗 LLAMA A: SignosVitalesViewModel.eliminar()
+                        /// 📤 RESULTADO: Elemento desaparece automáticamente de la lista
                         .onDelete(perform: viewModel.eliminar)
                     }
                     .listStyle(PlainListStyle())
