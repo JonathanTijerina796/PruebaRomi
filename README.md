@@ -2,25 +2,25 @@
 
 Una app para guardar datos médicos como temperatura, presión y ritmo cardíaco.
 
-## 🚀 Cómo usar la app
+## Cómo usar la app
 
 1. **Abrir el proyecto**
    - Abrir `PruebaRomi.xcodeproj` en Xcode
    - Seleccionar un simulador de iPhone
-   - Presionar el botón ▶️ (Play)
+   - Presionar el botón Play
 
 2. **Usar la app**
    - **Pestaña "Registrar"**: Escribir temperatura, presión y ritmo → Guardar
    - **Pestaña "Historial"**: Ver todos los registros guardados
 
-## 📁 Archivos importantes
+## Archivos importantes
 
 - `PruebaRomiApp.swift` - Donde inicia la app
 - `ContentView.swift` - Las pantallas que ve el usuario
 - `SignosVitalesViewModel.swift` - La lógica (guardar, eliminar datos)
 - `SignosVitales.swift` - Cómo se ve un registro médico
 
-## 🏗️ Arquitectura (MVVM)
+## Arquitectura (MVVM)
 
 Es como organizar tu código en 3 partes:
 
@@ -28,16 +28,10 @@ Es como organizar tu código en 3 partes:
 - **View** (`ContentView.swift`) - Lo que ve el usuario (botones, textos)
 - **ViewModel** (`SignosVitalesViewModel.swift`) - Conecta los datos con la pantalla
 
-## 💾 Dónde se guardan los datos
+## Dónde se guardan los datos
 
 Los registros se guardan automáticamente en el teléfono. Cuando cierres y abras la app, todavía estarán ahí.
 
-## ❓ Si algo no funciona
-
-- Revisar que tengas **Xcode 15** o más nuevo
-- Usar simulador de **iPhone 15** o similar
-- Los datos se borran si eliminas la app del simulador
-
 ---
 
-*App hecha con SwiftUI* ✨
+*App hecha con SwiftUI*
