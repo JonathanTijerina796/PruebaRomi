@@ -1,13 +1,10 @@
 //
 //  SignosVitales.swift
 //  PruebaRomi
-//
-//  Created by Jonathan Tijerina on 19/08/25.
-//
 
 import Foundation
 
-// Modelo de signos vitales
+// MARK: - SignoVital
 struct SignoVital: Identifiable, Codable {
     var id = UUID()
     var fecha = Date()
@@ -22,7 +19,7 @@ struct SignoVital: Identifiable, Codable {
     }
 }
 
-// Clase para manejar datos con almacenamiento
+// MARK: - DatosVitales (Legacy)
 class DatosVitales: ObservableObject {
     @Published var lista: [SignoVital] = []
     private let clave = "datosVitales"

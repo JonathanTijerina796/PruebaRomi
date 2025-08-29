@@ -1,24 +1,22 @@
 //
 //  ContentView.swift
 //  PruebaRomi
-//
-//  Created by Jonathan Tijerina on 19/08/25.
-//
 
 import SwiftUI
 
+// MARK: - Vista Principal
 struct ContentView: View {
-    @StateObject private var datos = DatosVitales()
+    @StateObject private var viewModel = SignosVitalesViewModel()
     
     var body: some View {
         TabView {
-            RegistrarView(datos: datos)
+            RegistrarView(viewModel: viewModel)
                 .tabItem {
                     Image(systemName: "plus.circle.fill")
                     Text("Registrar")
                 }
             
-            HistorialView(datos: datos)
+            HistorialView(viewModel: viewModel)
                 .tabItem {
                     Image(systemName: "list.bullet")
                     Text("Historial")
@@ -28,18 +26,18 @@ struct ContentView: View {
     }
 }
 
-// Vista para registrar
+// MARK: - Vista para Registrar
 struct RegistrarView: View {
-    @ObservedObject var datos: DatosVitales
+    @ObservedObject var viewModel: SignosVitalesViewModel
     @State private var temperatura = ""
     @State private var presion = ""
     @State private var ritmo = ""
     @State private var mostrarAlerta = false
+    @State private var mostrarConfirmacion = false
     
     var body: some View {
         NavigationView {
             VStack(spacing: 25) {
-                // Header mejorado
                 VStack(spacing: 8) {
                     Image(systemName: "cross.case.fill")
                         .font(.system(size: 40))
@@ -50,16 +48,14 @@ struct RegistrarView: View {
                         .fontWeight(.medium)
                 }
                 .padding(.top, 20)
-                
-                // Formulario
                 VStack(spacing: 18) {
-                    // Campo Temperatura
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Temperatura (°C)", systemImage: "thermometer")
                             .font(.headline)
                             .foregroundColor(.blue)
                         
                         TextField("Ej: 36.5", text: $temperatura)
+                            .keyboardType(.decimalPad)
                             .padding()
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(10)
@@ -72,41 +68,53 @@ struct RegistrarView: View {
                     .background(Color.white)
                     .cornerRadius(12)
                     .shadow(color: .gray.opacity(0.1), radius: 3, x: 0, y: 1)
-                    
-                    // Campo Presión
-                    HStack {
-                        Image(systemName: "drop.fill")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Presión Arterial", systemImage: "drop.fill")
+                            .font(.headline)
                             .foregroundColor(.red)
-
+                        
                         TextField("Ej: 120/80", text: $presion)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                            )
                     }
-                    
-                    // Campo Ritmo
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Image(systemName: "heart.fill")
-                                .foregroundColor(.green)
-                            Text("Ritmo Cardíaco (ppm)")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                        }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.1), radius: 3, x: 0, y: 1)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Ritmo Cardíaco (ppm)", systemImage: "heart.fill")
+                            .font(.headline)
+                            .foregroundColor(.green)
                         
                         TextField("Ej: 75", text: $ritmo)
+                            .keyboardType(.numberPad)
                             .padding()
-                            .background(Color.green.opacity(0.05))
-                            .cornerRadius(8)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                            )
                     }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.1), radius: 3, x: 0, y: 1)
                 }
                 .padding(.horizontal)
                 
-                // Botón
                 Button(action: {
                     if temperatura.isEmpty || presion.isEmpty || ritmo.isEmpty {
                         mostrarAlerta = true
                     } else {
-                        datos.agregar(temperatura: temperatura, presion: presion, ritmo: ritmo)
+                        viewModel.agregar(temperatura: temperatura, presion: presion, ritmo: ritmo)
                         limpiarCampos()
+                        mostrarConfirmacion = true
                     }
                 }) {
                     HStack {
@@ -131,9 +139,15 @@ struct RegistrarView: View {
             } message: {
                 Text("Por favor llena todos los campos")
             }
+            .alert("¡Datos Guardados!", isPresented: $mostrarConfirmacion) {
+                Button("Perfecto") { }
+            } message: {
+                Text("Los signos vitales se han guardado exitosamente. Puedes verlos en la pestaña 'Historial'.")
+            }
         }
     }
     
+    // MARK: - Métodos Privados
     private func limpiarCampos() {
         temperatura = ""
         presion = ""
@@ -141,14 +155,13 @@ struct RegistrarView: View {
     }
 }
 
-// Vista del historial
+// MARK: - Vista del Historial
 struct HistorialView: View {
-    @ObservedObject var datos: DatosVitales
+    @ObservedObject var viewModel: SignosVitalesViewModel
     
     var body: some View {
         NavigationView {
             VStack {
-                // Header
                 HStack {
                     Image(systemName: "heart.text.square.fill")
                         .font(.title)
@@ -158,7 +171,7 @@ struct HistorialView: View {
                         Text("Historial Médico")
                             .font(.title3)
                             .fontWeight(.bold)
-                        Text("\(datos.lista.count) registros")
+                        Text("\(viewModel.signosVitales.count) registros")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -167,8 +180,7 @@ struct HistorialView: View {
                 }
                 .padding()
                 
-                if datos.lista.isEmpty {
-                    // Estado vacío básico
+                if viewModel.signosVitales.isEmpty {
                     VStack(spacing: 15) {
                         Image(systemName: "tray")
                             .font(.system(size: 50))
@@ -182,11 +194,9 @@ struct HistorialView: View {
                     
                     Spacer()
                 } else {
-                    // Lista
                     List {
-                        ForEach(datos.lista) { registro in
+                        ForEach(viewModel.signosVitales) { registro in
                             VStack(alignment: .leading, spacing: 8) {
-                                // Fecha mejorada
                                 HStack {
                                     Image(systemName: "calendar")
                                         .foregroundColor(.blue)
@@ -195,10 +205,7 @@ struct HistorialView: View {
                                         .font(.headline)
                                     Spacer()
                                 }
-                                
-                                // Datos
                                 HStack {
-                                    // Temperatura
                                     VStack {
                                         Image(systemName: "thermometer")
                                             .foregroundColor(.blue)
@@ -208,12 +215,9 @@ struct HistorialView: View {
                                     
                                     Spacer()
                                     
-                                    // Presión básica
                                     Text("🩺 \(registro.presion)")
                                     
                                     Spacer()
-                                    
-                                    // Ritmo medio
                                     VStack {
                                         Text("💓")
                                         Text(registro.ritmoCardiaco)
@@ -222,7 +226,7 @@ struct HistorialView: View {
                             }
                             .padding(.vertical, 4)
                         }
-                        .onDelete(perform: datos.eliminar)
+                        .onDelete(perform: viewModel.eliminar)
                     }
                     .listStyle(PlainListStyle())
                 }
@@ -233,6 +237,7 @@ struct HistorialView: View {
     }
 }
 
+// MARK: - Extensions
 let fechaFormato: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateStyle = .short
