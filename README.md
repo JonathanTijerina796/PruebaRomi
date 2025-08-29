@@ -32,6 +32,6 @@ Es como organizar tu código en 3 partes:
 
 Los registros se guardan automáticamente en el teléfono. Cuando cierres y abras la app, todavía estarán ahí.
 
----
-
 *App hecha con SwiftUI*
+
+
